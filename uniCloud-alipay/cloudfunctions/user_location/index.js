@@ -12,19 +12,24 @@ exports.main = async (event, context) => {
 			});
 			if(res.data.length === 0){
 				await db.collection('user_location').add({
+					_id : event.deviceId,
 					deviceId: event.deviceId,
 					deviceModel: event.deviceModel,
 					latitude: event.latitude,
 					longitude: event.longitude,
 					createTime: new Date().getTime(),
 					updateTime: new Date().getTime(),
+					push_clientid: event.push_clientid,
 				});
 			}else{
-				await db.collection('user_location').update({
+				await db.collection('user_location').where({
+					deviceId: event.deviceId,
+				}).update({
 					deviceId: event.deviceId,
 					latitude: event.latitude,
 					longitude: event.longitude,
 					updateTime: new Date().getTime(),
+					push_clientid: event.push_clientid,
 				});
 			}
 			// 返回数据库中所有的位置信息

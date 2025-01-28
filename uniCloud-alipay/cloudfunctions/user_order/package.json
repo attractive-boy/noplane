@@ -1,7 +1,0 @@
-{
-  "name": "user_order",
-  "dependencies": {},
-  "extensions": {
-    "uni-cloud-jql": {}
-  }
-}

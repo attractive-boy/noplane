@@ -1,0 +1,266 @@
+<template>
+	<div>
+		<map id="map" style="width: 100%;" :style="'height:'+ windowHeight+'rpx;'"
+			:latitude="latitude" :longitude="longitude" :markers="markers" :polyline="polyline" scale="16"
+			:show-compass='true' :circles="circles" :controls="controls" show-location>
+		</map>
+		<div style="width: 100%; padding: 20rpx;" :style="'height:'+windowHeight+'rpx;'">
+			<div style="display:flex; flex-direction:row;justify-content: space-between;align-items: center;">
+				<div
+					style="display: flex; flex-direction: row; padding:20rpx; margin:20rpx; border-radius: 20rpx; border: 1px solid #0078D7; width:190rpx">
+					<u-icon name="/static/safe.png"></u-icon>
+					<u--text text="安全中心" type="primary"></u--text>
+				</div>
+				<div style="margin-right: 20rpx;">
+					<u-icon name="/static/gps.png"></u-icon>
+				</div>
+			</div>
+			
+				<div
+					style="border-radius: 10rpx; box-shadow: 0 0 10rpx 0 rgba(0, 0, 0, 0.1);padding: 20rpx; margin: 20rpx;">
+					<div style="display: flex; flex-direction: row; align-items: center;">
+						<div style="width: 40rpx; height: 40rpx; border-radius: 20rpx; background-color: #0078D7;">
+
+						</div>
+						<div style="margin-left: 40rpx;">
+							<u--text text="我的位置" size="14"></u--text>
+							<u--text text="急救点" size="12" type="primary"></u--text>
+						</div>
+					</div>
+					<u-divider></u-divider>
+					<div style="display: flex; flex-direction: row; align-items: center;">
+						<div style="width: 40rpx; height: 40rpx; border-radius: 20rpx; background-color: #00D700;">
+
+						</div>
+						<div style="margin-left: 20rpx;">
+							<u-cell title="您选择的急救站位置" :value="selectedLocation" @click="selectedLocationShow = true"
+								style="width: 400rpx;"></u-cell>
+						</div>
+					</div>
+				</div>
+				<div v-if="!isPay">
+				<div
+					style="border-radius: 10rpx; box-shadow: 0 0 10rpx 0 rgba(0, 0, 0, 0.1);padding: 20rpx; margin: 20rpx; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+
+					<div style="display: flex; flex-direction: row; align-items: center;">
+						<div
+							style="display: flex; flex-direction: row; align-items: center; border-right: 1px solid gray; width: 300rpx; margin-right: 20rpx;">
+							<u-icon name="/static/home.png"></u-icon>
+							<div style="margin-left: 20rpx;  padding-right: 20rpx; ">
+								<u--text text="您的位置" size="14"></u--text>
+								<u--text text="设置您的地址" size="12" type=“info”></u--text>
+							</div>
+						</div>
+						<div style="display: flex; flex-direction: row; align-items: center; width: 50%;">
+							<u-icon name="/static/savestation.png"></u-icon>
+							<div style="margin-left: 20rpx; padding-right: 20rpx;">
+								<u--text text="急救站" size="14"></u--text>
+								<u--text text="设置急救站的地址" size="12" type=“info”></u--text>
+							</div>
+						</div>
+					</div>
+				</div>
+				<u-button type="primary" @click="confirmOrder" text="确认订单"></u-button>
+			</div>
+			<div v-else>
+				
+			</div>
+
+
+		</div>
+		<u-picker :show="selectedLocationShow" :columns="selectedLocationColumns"
+			@confirm="selectedLocationConfirm"></u-picker>
+		<u-popup :show="showpayorder" @close="closepayorder" @open="openpayorder" closeable="true"
+			closeIconPos="top-left">
+			<div style="width: 100%; padding: 20rpx;">
+				<div style="display: flex; flex-direction: row; justify-content: center; align-items: center;">
+					<div>
+						<u--text text="待支付金额" size="14"></u--text>
+					</div>
+				</div>
+				<u-divider></u-divider>
+				<u-cell title="合计费用" value="18.00元" style="width: 600rpx;"></u-cell>
+				<div
+					style="width: 100%; padding: 20rpx; border: 1px solid #FFA500; background-color: rgba(255,165,0,0.1)">
+					<u-cell title="优惠券" value="-10.00元" style="width: 600rpx ;" :isLink="true"
+						arrow-direction="right"></u-cell>
+				</div>
+				<u-divider></u-divider>
+				<div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+					<div style="margin-left: 20rpx;">
+						<u--text text="8.00元" size="20" type="primary"></u--text>
+					</div>
+					<u-cell title="费用明细" value=">"></u-cell>
+				</div>
+				<div style="display: flex; flex-direction: column; padding: 20rpx;">
+					<u-radio-group v-model="payType" iconPlacement="right" placement="column">
+						<div style="margin-bottom: 20rpx;">
+							<u-radio label="微信支付" value="wechat" name="wechat">
+
+							</u-radio>
+						</div>
+						<div>
+							<u-radio label="支付宝支付" value="alipay" name="alipay">
+
+							</u-radio>
+						</div>
+					</u-radio-group>
+				</div>
+
+				<u-button type="primary" @click="confirmPay" text="确认支付8.00元"></u-button>
+			</div>
+		</u-popup>
+	</div>
+
+
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				windowHeight: uni.getSystemInfoSync().windowHeight,
+				latitude: 23.132303,
+				longitude: 113.334521,
+				markers: [],
+				circles: [],
+				controls: [],
+				selectedLocation: null,
+				selectedLocationShow: false,
+				selectedLocationColumns: [],
+				selectedLocationIndex: 0,
+				confirmOrderShow: false,
+				result: null,
+				polyline: [],
+				payType: 'wechat',
+				isPay: false,
+				myDevice_id: null,
+				showpayorder: false,
+			}
+		},
+		onLoad() {
+			const that = this;
+			// 获取当前位置
+			uni.getLocation({
+				type: 'gcj02',
+				success: (res) => {
+					this.latitude = res.latitude;
+					this.longitude = res.longitude;
+					console.log('当前位置的经度：' + this.longitude);
+					console.log('当前位置的纬度：' + this.latitude);
+					//获取 设备信息
+					uni.getSystemInfo({
+						success: (res) => { //调用云函数
+							this.myDevice_id = res.deviceId;
+							uniCloud.callFunction({
+								name: 'user_location',
+								data: {
+									type: 'init',
+									deviceId: res.deviceId,
+									phonenumber: uni.getStorageSync('phonenumber'),
+									deviceModel: res.deviceModel,
+									latitude: this.latitude,
+									longitude: this.longitude,
+									push_clientid: uni.getStorageSync('push_clientid'),
+								},
+								success: (res) => {
+									console.log(res)
+									that.initMap(res);
+								},
+							})
+						}
+					});
+				}
+			});
+
+		},
+		methods: {
+			initMap(res) {
+				this.result = res.result.data;
+				let id = 0;
+				this.markers = res.result.data.map(user => ({
+					id: ++id,
+					latitude: user.latitude,
+					longitude: user.longitude,
+					iconPath: '/static/location.png', // 自定义图标路径
+					width: 30,
+					height: 30,
+					callout: { // 添加 callout 属性
+						content: `${user.phonenumber}`,
+						color: '#000000',
+						fontSize: 14,
+						borderRadius: 5,
+						bgColor: '#ffffff',
+						padding: 5,
+						display: 'ALWAYS'
+					}
+				}));
+				this.selectedLocationColumns = [res.result.data.map(user => user.phonenumber)]; 
+				console.log("this.markers==>", this.markers)
+			},
+			selectedLocationConfirm(e) {
+				this.selectedLocation = e.value[0];
+				this.selectedLocationShow = false;
+
+				// 找到选中的位置点
+				const selectedPoint = this.result.find(item => item.phonenumber === this.selectedLocation);
+
+				// 构造连接线
+				this.polyline = [{
+					points: [{
+						latitude: this.latitude,
+						longitude: this.longitude
+					}, {
+						latitude: selectedPoint.latitude,
+						longitude: selectedPoint.longitude
+					}],
+					color: '#0078D7',
+					width: 4,
+					arrowLine: true
+				}];
+
+				// 计算合适的缩放级别
+				const mapContext = uni.createMapContext('map');
+				mapContext.includePoints({
+					points: [{
+						latitude: this.latitude,
+						longitude: this.longitude
+					}, {
+						latitude: selectedPoint.latitude,
+						longitude: selectedPoint.longitude
+					}],
+					padding: [100, 100, 100, 100] // 设置地图边距，确保线条完全可见
+				});
+			},
+			confirmOrder() {
+				this.showpayorder = true;
+			},
+			closepayorder() {
+				this.showpayorder = false;
+			},
+			openpayorder() {
+				this.showpayorder = true;
+			},
+			confirmPay() {
+				//调用云函数，创建订单
+				uniCloud.callFunction({
+					name: 'create_order',
+					data: {
+						savestation: this.result.find(item => item.phonenumber === this.selectedLocation).deviceId, 
+						user: this.myDevice_id,
+					}
+				}).then(res => {
+					console.log("create_order",res)
+					//跳转到订单页
+					uni.navigateTo({
+						url: '/pages/order/index?orderId=' + res.result.orderId
+					});
+				});
+			}
+		}
+	}
+</script>
+
+<style>
+	/* 可能需要调整样式以适应 nvue 的渲染 */
+</style>

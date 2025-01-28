@@ -10,3 +10,18 @@
 
 // 下面示例查询uni-id-users表的所有数据
 db.collection('user_location').get();
+
+// 删除所有数据
+db.collection('user_location').remove();
+
+db.collection('user_location').where({
+    _id: "679655b0dfa50110f65cbfde"
+}).update({
+    deviceId: "EBDC9A2EA41FC1F8B0D678472B89EB05",
+    deviceModel: "SM-G988N1",
+    phonenumber: "13800138000",
+    latitude: 27.875351,
+    longitude: 112.893659,
+    createTime: Date.now(),
+    updateTime: Date.now()
+});

@@ -1,0 +1,34 @@
+
+{
+	"bsonType": "object",
+	"required": [],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"orderId": {
+			"description": "订单ID"
+		},
+		"savestation": {
+			"description": "保存的站点ID"
+		},
+		"user": {
+			"description": "用户ID"
+		},
+		"orderStatus": {
+			"description": "订单状态"
+		},
+		"createTime": {
+			"description": "创建时间"
+		},
+		"updateTime": {
+			"description": "更新时间"
+		}
+	}
+}

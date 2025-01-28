@@ -1,7 +1,7 @@
 <template>
 	<view style="margin: 0 30rpx;">
 		<uni-section v-bind:title="logintype" titleFontSize="40rpx"></uni-section>
-		<u-input placeholder="请输入手机号">
+		<u-input placeholder="请输入手机号" v-model="phonenumber">
 			<u-text text="+86" slot="prefix" margin="0 3px 0 0" type="tips" ></u-text>
 		</u-input>
 		<u-divider text=""></u-divider>
@@ -70,6 +70,8 @@
 				this.logintype = newType;
 			},
 			login() {
+				// 存储手机号
+				uni.setStorageSync('phonenumber', this.phonenumber);
 				//跳转首页
 				uni.switchTab({
 					url: '/pages/home/index'

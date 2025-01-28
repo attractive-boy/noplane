@@ -63,11 +63,60 @@
 		{
 			"path": "pages/noplanefly/index",
 			"style": {
-				"navigationBarTitleText": "立即配送"
+				"navigationBarTitleText": "立即配送",
+				"app-plus": {
+					"titleNView": false,
+					"subNVues": [
+						{
+							"id": "map",
+							"path": "pages/noplanefly/index.nvue",
+							"style": {
+								"width": "100%",
+								"height": "100%"
+							}
+						}
+					]
+				}
+			}
+		},
+		{
+			"path": "pages/order/index",
+			"style": {
+				"navigationBarTitleText": "立即配送",
+				"app-plus": {
+					"titleNView": false,
+					"subNVues": [
+						{
+							"id": "map_order",
+							"path": "pages/order/index.nvue",
+							"style": {
+								"width": "100%",
+								"height": "100%"
+							}
+						}
+					]
+				}
+			}
+		},
+		{
+			"path": "pages/order/cancel",
+			"style": {
+				"navigationBarTitleText": "取消订单"
+			}
+		},
+		{
+			"path": "pages/order/rule",
+			"style": {
+				"navigationBarTitleText": "取消规则"
+			}
+		},
+		{
+			"path": "pages/order/selectreason",
+			"style": {
+				"navigationBarTitleText": "选择取消原因"
 			}
 		}
 	],
-
 	"tabBar": {
 		"list": [
 			{
@@ -81,10 +130,9 @@
 			{
 				"pagePath": "pages/shop/index",
 				"text": "商城"
-			} 	
+			}
 		]
 	},
-
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "uni-app",
@@ -93,6 +141,6 @@
 	},
 	"uniIdRouter": {},
 	"easycom": {
-			"^u-(.*)": "@/uni_modules/uview-ui/components/u-$1/u-$1.vue"
-		}
+		"^u-(.*)": "@/uni_modules/uview-ui/components/u-$1/u-$1.vue"
+	}
 }

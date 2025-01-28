@@ -56,7 +56,13 @@
                         "appkey_android" : "d6b09e38e3347ad8f055f0216335f216"
                     }
                 },
-                "push" : {}
+                "push" : {
+                    "unipush" : {
+                        "version" : "2",
+                        "offline" : false,
+                        "mi" : {}
+                    }
+                }
             },
             "splashscreen" : {
                 "androidStyle" : "default",

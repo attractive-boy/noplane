@@ -1,0 +1,8 @@
+{
+  "name": "order_cancel",
+  "dependencies": {},
+  "extensions": {
+    "uni-cloud-jql": {},
+    "uni-cloud-push": {}
+  }
+}

@@ -29,6 +29,12 @@
 		},
 		"updateTime": {
 			"description": "更新时间"
+		},
+		"phonenumber": {
+			"description": "手机号"
+		},
+		"push_clientid": {
+			"description": "推送客户端ID"
 		}
 	}
 }

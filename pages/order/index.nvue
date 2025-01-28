@@ -1,0 +1,220 @@
+<template>
+	<div>
+		<u-navbar
+            :title="orderstatus == 0 ? '派单中' : orderstatus == 2 ? '已取消' : '已送达'"
+            :autoBack="true"
+        >
+        </u-navbar>
+		<map id="map" style="width: 100%;" :style="'height:'+ windowHeight * 2+'rpx;'"
+			:latitude="latitude" :longitude="longitude" :markers="markers" :polyline="polyline" scale="16"
+			:show-compass='true' :circles="circles" :controls="controls" show-location>
+		</map>
+		<div style="width: 100%; padding: 10rpx; margin: 20rpx; border-radius: 20rpx; box-shadow: 0 0 10rpx gray; " 
+			 :style="{height: orderstatus == 0 ? '300rpx' : '700rpx', position:'fixed', bottom:30, left:0, right:0, backgroundColor:'#fff'}">
+			<div v-if="orderstatus == 0" style="display:flex; flex-direction:row;justify-content: space-between;align-items: center;">
+				<div v-if="orderstatus == 0"
+					style="display: flex; flex-direction: row; padding:20rpx; margin:20rpx; border-radius: 20rpx; border: 1px solid #0078D7; width:190rpx">
+					<u-icon name="/static/safe.png"></u-icon>
+					<u--text text="安全中心" type="primary"></u--text>
+				</div>
+				<div style="margin-right: 20rpx;">
+					<u-icon name="/static/gps.png"></u-icon>
+				</div>
+			</div>
+			<div v-if="orderstatus == 0" style="display:flex; flex-direction:row;justify-content: space-between;align-items: center;">
+				<div
+					style="margin-left: 20rpx;">
+					<u--text text="订单派送中"  size="25"></u--text>
+					<u--text text="抱歉，当前无可用运输设备"  size="15" type="info"></u--text>
+				</div>
+				<div style="margin-right: 20rpx;">
+					<u-button type="primary" text="取消订单" @click="cancelOrder" size="small"></u-button>
+					<u-button text="更改地址" @click="reorder" size="small" style="margin-top: 20rpx;"></u-button>
+				</div>
+			</div>
+			<div v-if="orderstatus == 2" style="padding: 30rpx;">
+				<div style="display:flex; flex-direction:column; align-items: center; margin-bottom: 40rpx;">
+					<u-icon name="close-circle" color="#FF0000" size="60"></u-icon>
+					<text style="font-size: 36rpx; font-weight: bold; margin-top: 20rpx;">订单取消成功</text>
+					<text style="font-size: 24rpx; color: #666; margin-top: 10rpx;">订单已取消，您可以重新选择</text>
+				</div>
+				
+				<div style="background-color: #F8F8F8; padding: 30rpx; border-radius: 16rpx;">
+					<div style="display:flex; flex-direction:row; align-items: center; margin-bottom: 30rpx;">
+						<u-icon name="clock" color="#666666" size="32"></u-icon>
+						<text style="font-size: 24rpx; color: #666666; margin-left: 10rpx;">2025-01-27 10:00:00</text>
+					</div>
+					
+					<div style="position: relative; padding-left: 30rpx;">
+						<div style="position: absolute; left: 0; top: 0; bottom: 0; width: 2rpx; background-color: #DDDDDD;"></div>
+						
+						<div style="display:flex; flex-direction:row; align-items: center; margin-bottom: 30rpx;">
+							<div style="width: 16rpx; height: 16rpx; border-radius: 50%; background-color: #0078D7; margin-left: -39rpx; border: 6rpx solid #F8F8F8;"></div>
+							<text style="font-size: 28rpx; margin-left: 20rpx;">湖北科技学院图书馆</text>
+						</div>
+						
+						<div style="display:flex; flex-direction:row; align-items: center;">
+							<div style="width: 16rpx; height: 16rpx; border-radius: 50%; background-color: #00FF00; margin-left: -39rpx; border: 6rpx solid #F8F8F8;"></div>
+							<text style="font-size: 28rpx; margin-left: 20rpx;">湖北科技学院揽胜楼</text>
+						</div>
+					</div>
+				</div>
+				
+				<div style="margin-top: 40rpx;">
+					<u-button type="primary" text="重新选择" @click="reorder" :customStyle="{width: '100%', height: '80rpx'}"></u-button>
+				</div>
+			</div>
+
+		</div>
+		
+	</div>
+
+
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				windowHeight: uni.getSystemInfoSync().windowHeight,
+				latitude: 23.132303,
+				longitude: 113.334521,
+				markers: [],
+				circles: [],
+				controls: [],
+				polyline: [],
+				orderId: '',
+				result: null,
+				orderstatus: 0,
+				orderinfo: null
+			}
+		},
+		onLoad(options) {
+			const that = this;
+			if (!options.orderId) {
+				uni.showToast({
+					title: '订单ID不能为空',
+					icon: 'none'
+				});
+				return;
+			}
+			this.orderId = options.orderId;
+			
+			uni.showLoading({
+				title: '加载中'
+			});
+			
+			uniCloud.callFunction({
+				name: 'get_order',
+				data: {
+					orderId: that.orderId
+				}
+			}).then(res => {
+				console.log("orderinfo",res);
+				this.orderstatus = res.result.order.orderStatus;
+				this.orderinfo = res.result.order;
+				console.log("orderstatus",this.orderstatus);
+				if(this.orderstatus == 2){
+					//设置标题为订单已取消
+					uni.setNavigationBarTitle({
+						title: '已取消'
+					});
+				}
+				this.initMap(res.result);
+			}).catch(err => {
+				uni.showToast({
+					title: '获取订单信息失败：' + err.message,
+					icon: 'none'
+				});
+			}).finally(() => {
+				uni.hideLoading();
+			});
+		},
+		methods: {
+			initMap(res) {
+				console.log("res",res);
+				const markers = [];
+				// 设置标记点
+				let id = 0;
+				markers.push(...res.fromlocation.map(user => ({
+					id: ++id,
+					latitude: user.latitude,
+					longitude: user.longitude,
+					iconPath: '/static/location.png',
+					width: 30,
+					height: 30,
+					callout: {
+						content: user.phonenumber,
+						color: '#000000',
+						fontSize: 14,
+						borderRadius: 5,
+						bgColor: '#ffffff',
+						padding: 5,
+						display: 'ALWAYS'
+					}
+				})));
+				markers.push(...res.toLocation.map(user => ({
+					id: ++id,
+					latitude: user.latitude,
+					longitude: user.longitude,
+					iconPath: '/static/location.png',
+					width: 30,
+					height: 30,
+					callout: {
+						content: user.phonenumber,
+						color: '#000000',
+						fontSize: 14,
+						borderRadius: 5,
+						bgColor: '#ffffff',
+						padding: 5,
+						display: 'ALWAYS'
+					}
+				})));
+				
+				this.markers = markers;
+					
+
+				// 如果有多个坐标点，绘制路线
+				if (markers.length >= 2) { 
+					this.polyline = [{
+						points: markers.map(user => ({
+							latitude: user.latitude,
+							longitude: user.longitude
+						})),
+						color: '#0078D7',
+						width: 4,
+						arrowLine: true
+					}];
+					
+					// 设置地图中心点和缩放级别
+					const mapContext = uni.createMapContext('map');
+					mapContext.includePoints({
+						points: this.markers,
+						padding: [80, 80, 80, 80]
+					});
+				}
+			},
+			cancelOrder() {
+				console.log("取消订单");
+				uni.navigateTo({
+					url: '/pages/order/cancel?orderId=' + this.orderId
+				});
+			},
+			reorder() {
+				console.log("更改地址");
+				uni.navigateTo({
+					url: '/pages/noplanefly/index'
+				});
+			},
+			goToOrder() {
+				uni.navigateTo({
+					url: '/pages/order/index?orderId=' + this.orderId
+				});
+			}
+		}
+	}
+</script>
+
+<style>
+	/* 可能需要调整样式以适应 nvue 的渲染 */
+</style>

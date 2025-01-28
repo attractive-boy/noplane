@@ -1,38 +1,34 @@
 <script>
+
+
 	export default {
 		onLaunch: function() {
+			uni.getPushClientId({
+				success: (res) => {
+					let push_clientid = res.cid
+					uni.setStorageSync('push_clientid', push_clientid)
+				},
+				fail(err) {
+					console.log(err)
+				}
+			})
+			uni.onPushMessage((res) => {  
+				// 监听通知栏消息的点击  
+				if(res.type == 'click'){  
+					console.log("收到一条消息=>",res);  
+					uni.navigateTo({
+						url: '/pages/order/index?orderId=' + res.data.payload.orderId
+					});   
+				}  
+				// 监听在线推送消息，若云函数设置了 "force_notification":true，则不会触发此 receive。  
+				if(res.type == 'receive'){  
+					console.log("接收到的消息内容",res);  
+				}  
+			}) 
 			console.log('App Launch')
 		},
 		onShow: function() {
 			console.log('App Show')
-			uni.getLocation({
-				type: 'wgs84',
-				success: (res) => {
-					this.latitude = res.latitude;
-					this.longitude = res.longitude;
-					//获取 设备信息
-					uni.getSystemInfo({
-						success: (res) => {						//调用云函数
-							uniCloud.callFunction({
-								name: 'user_location',
-								data: {
-									
-									
-									
-									type: 'init',
-									deviceId: res.deviceId,
-									deviceModel: res.deviceModel,
-									latitude: this.latitude,
-									longitude: this.longitude
-								},
-									success: (res) => {
-										console.log(res);
-									},
-							})
-						}
-					});
-				}
-			});
 		},
 		onHide: function() {
 			console.log('App Hide')
